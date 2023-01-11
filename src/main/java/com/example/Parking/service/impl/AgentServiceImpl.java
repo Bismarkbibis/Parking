@@ -9,41 +9,44 @@ import com.example.Parking.exception.CustomeException;
 import com.example.Parking.model.Account;
 import com.example.Parking.model.Adress;
 import com.example.Parking.model.Agent;
+import com.example.Parking.model.Token;
 import com.example.Parking.repository.AccountRepository;
 import com.example.Parking.repository.AdressRepository;
 import com.example.Parking.repository.AgentRepository;
+import com.example.Parking.repository.TokenRepository;
 import com.example.Parking.service.AgentService;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class AgentServiceImpl implements AgentService {
 
-    @Autowired
+    private static final ModelMapper mapper = new ModelMapper();
+
+
     private final AgentRepository agentRepository;
-    @Autowired
-    private static final   ModelMapper mapper = new ModelMapper();
-    @Autowired
     private final AccountRepository accountRepository;
-    @Autowired
     private final PasswordEncoder passwordEncoder;
-    @Autowired
     private final AdressRepository adressRepository;
+    private final TokenRepository tokenRepository;
+    private final String regexPhoneNumber = "^(?:(?:\\+|00)33[\\s.-]{0,3}(?:\\(0\\)[\\s.-]{0,3})?|0)[1-9](?:(?:[\\s.-]?\\d{2}){4}|\\d{2}(?:[\\s.-]?\\d{3}){2})$";
 
-    String regexEmail = "^[\\\\w!#$%&’*+/=?`{|}~^-]+(?:\\\\.[\\\\w!#$%&’*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\\\.)+[a-zA-Z]{2,6}$";
-    String regexPhoneNumber= "^(?:(?:\\+|00)33[\\s.-]{0,3}(?:\\(0\\)[\\s.-]{0,3})?|0)[1-9](?:(?:[\\s.-]?\\d{2}){4}|\\d{2}(?:[\\s.-]?\\d{3}){2})$";
+    /// private CustomeException customeException;
+    private HashMap<String, String> error;
 
-   /// private CustomeException customeException;
-    private HashMap<String,String> error;
+    public AgentServiceImpl(AgentRepository agentRepository, AccountRepository accountRepository, PasswordEncoder passwordEncoder, AdressRepository adressRepository, TokenRepository tokenRepository) {
+        this.agentRepository = agentRepository;
+        this.accountRepository = accountRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.adressRepository = adressRepository;
+        this.tokenRepository = tokenRepository;
+    }
 
     @Override
     public Agent creatAgent(AgentDto agentDto, AccountDto accountDto, AdressDto adressDTO) {
@@ -54,54 +57,61 @@ public class AgentServiceImpl implements AgentService {
         Agent agentParam = mapAgentToEntity(agentDto);
 
         Optional<Agent> findAgentdBynNumeriSiret = agentRepository.findAgentByNumSire(agentParam.getSiretNumber());
-        Optional<Agent> agentEmail = agentRepository.findByEmail(agentParam.getEmail());
+        Optional<Agent> findAgentByEmail = agentRepository.findByEmail(agentParam.getEmail());
 
-
+        // verify email of agency
         if (findAgentdBynNumeriSiret.isEmpty()) {
             newAgent = new Agent();
             newAgent.setName(agentParam.getName());
+            //verify phone number
             if (agentParam.getNumber().matches(regexPhoneNumber)) {
                 newAgent.setNumber(agentParam.getNumber());
-            }else {
-               error.put("Number incorrect",agentParam.getNumber());
+            } else {
+                error.put("Number incorrect", agentParam.getNumber());
             }
             //TODO a vérifier le numéro siret
             newAgent.setSiretNumber(agentParam.getSiretNumber());
 
-            //verification de mail
-            boolean emailVerification = agentParam.getEmail().matches(regexEmail);
-            if (agentEmail.isEmpty() && emailVerification == true) {
-                newAgent.setEmail(agentParam.getEmail());
+            //verify de mail
+           boolean emailUser = isValidEmail(agentParam.getEmail());
+
+            if (findAgentByEmail.isEmpty() && emailUser) {
+                log.info("Email passeer");
+                    newAgent.setEmail(agentParam.getEmail());
             } else {
-                //throw new CustomeException("Erreur", "Mail deja existant", agentParam.getEmail());
-                error.put("Mail deja existant",agentParam.getEmail());
+                error.put("Mail deja existant", agentParam.getEmail());
             }
+
             //creatAcount
             Account newAccount = getAccount(newAgent);
+            //Token
+            Token token = genererToken();
 
             if (accountDto.getPassword().matches(accountDto.getPassword02())) {
                 newAccount.setPassword(passwordEncoder.encode(accountDto.getPassword()));
+                newAccount.setToken(token);
                 newAccount.setAgent(newAgent);
             } else {
-                //throw new CustomeException("Erreur", "Mots de pass incorrect", accountDto.getEmail());
-                error.put("Mail deja existant",agentParam.getEmail());
+                error.put("Mail deja existant", agentParam.getEmail());
             }
+
 
             //creatAdress
             Adress newAdress = getAdress(adressDTO);
             newAgent.setAdress(newAdress);
 
+            tokenRepository.save(token);
             accountRepository.save(newAccount);
             agentRepository.save(newAgent);
             adressRepository.save(newAdress);
-            return newAgent;
 
-        } else if (error.isEmpty()) {
-            CustomeException customeException = new CustomeException(error,"error d'insection de l'agence");
-            throw  customeException;
+        } else if (!(error.isEmpty())) {
+            log.info("hello mamamma");
+            throw new CustomeException(error, "error d'insection de l'agence");
         }
         return newAgent;
     }
+
 
     @NotNull
     private static Account getAccount(Agent newAgent) {
@@ -109,6 +119,7 @@ public class AgentServiceImpl implements AgentService {
         newAccount.setEmail(newAgent.getEmail());
         newAccount.setRole(Role.AMDIN);
         newAccount.setStatu(AcountStatu.ACTIVE);
+
         return newAccount;
     }
 
@@ -122,50 +133,43 @@ public class AgentServiceImpl implements AgentService {
         newAdress.setNameVoie(adressDTO.getNameVoie());
         return newAdress;
     }
-
-    public List<Agent> getAllAgent(){
-        List<Agent> agents = agentRepository.findAll();
-        return agents;
+    public static boolean isValidEmail( String email ) {
+        String regExp = "^[A-Za-z0-9._-]+@[A-Za-z0-9._-]+\\.[a-z][a-z]+$";
+        return email.matches( regExp );
     }
 
-    public Optional<Agent> getByName(String name){
-        Optional<Agent> agent =agentRepository.findByName(name);
-        return agent;
+    @NotNull
+    private Token genererToken() {
+        UUID uuid = UUID.randomUUID();
+        String valeurToken = uuid.toString(); // le token envoyer part le toString
+
+        Calendar calendar = Calendar.getInstance(); // permet de recupere la date et l'heur actuelle
+        // la durere du token
+        // on le met 15min
+        calendar.add(Calendar.MINUTE, 30); // la durer
+        Date expirationDate = calendar.getTime(); // constrution de date
+
+        return new Token(valeurToken, expirationDate);
     }
 
-    public void deleteAgent(String numSeret){
-        Optional<Agent> agent = agentRepository.findAgentByNumSire(numSeret);
+    public List<Agent> getAllAgent() {
+        return agentRepository.findAll();
+    }
+
+    public Optional<Agent> getByName(String name) {
+        return agentRepository.findByName(name);
     }
 
 
-    //DTO to Entity
-    private static AgentDto mapToDTO(Agent agent){
-        AgentDto agentDto=mapper.map(agent,AgentDto.class);
-        return  agentDto;
-    }
     //Entity to DTO
-    private static Agent mapAgentToEntity(AgentDto agentDto){
-        Agent agent=mapper.map(agentDto,Agent.class);
-        return agent;
+    private static Agent mapAgentToEntity(AgentDto agentDto) {
+        return mapper.map(agentDto, Agent.class);
     }
+
     // Acount
-    private static AccountDto mapAcountToDTO(Account account){
-        AccountDto accountDto = mapper.map(account,AccountDto.class);
+    private static AccountDto mapAcountToDTO(Account account) {
+        AccountDto accountDto = mapper.map(account, AccountDto.class);
         return accountDto;
     }
 
-    private static Account mapAcountToEntity(AccountDto accountDto){
-        Account account=mapper.map(accountDto,Account.class);
-        return account;
-    }
-
-    private static AdressDto mapAdressToDTO(Adress adress){
-        AdressDto adressDto = mapper.map(adress,AdressDto.class);
-        return adressDto;
-    }
-
-    private static Adress mapAdresseToEntity(AdressDto adressDto){
-        Adress adress = mapper.map(adressDto,Adress.class);
-        return adress;
-    }
 }

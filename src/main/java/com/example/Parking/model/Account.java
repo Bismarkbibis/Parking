@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
 
 @Data
 @Getter
@@ -42,16 +43,18 @@ public class Account implements Serializable {
     @JoinColumn(name = "agent_id")
     private Agent agent;
 
+    @ManyToOne
+    private Token token;
     public Account() {
 
     }
-
-    public Account(String password, String email, Role role, AcountStatu statu, User user, Agent agent) {
+    public Account(String password, String email, Role role, AcountStatu statu, User user, Agent agent,Token token) {
         this.password = password;
         this.email = email;
         this.role = role;
         this.statu = statu;
         this.user = user;
         this.agent = agent;
+        this.token=token;
     }
 }
