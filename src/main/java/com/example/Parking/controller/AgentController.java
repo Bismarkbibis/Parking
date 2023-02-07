@@ -29,7 +29,6 @@ public class AgentController {
         return "hello ";
     }
 
-
     @GetMapping("{name}")
     ResponseEntity<Optional<Agent>> getAgentByName(@PathVariable String name ){
         Optional<Agent> Agent = agentService.getByName(name);
@@ -46,9 +45,6 @@ public class AgentController {
 
         Agent agent = agentService.creatAgent(agentAcountDTO.getAgentDto(),agentAcountDTO.getAccountDtos(),agentAcountDTO.getAdressDto());
         System.out.println(" l'agent "+agentAcountDTO.getAgentDto());
-
         return ResponseEntity.ok(agent);
     }
-
-
 }

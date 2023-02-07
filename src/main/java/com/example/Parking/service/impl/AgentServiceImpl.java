@@ -19,7 +19,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,7 @@ public class AgentServiceImpl implements AgentService {
     @Autowired
     private final AgentRepository agentRepository;
     @Autowired
-    private static final   ModelMapper mapper = new ModelMapper();
+    private static final ModelMapper mapper = new ModelMapper();
     @Autowired
     private final AccountRepository accountRepository;
     @Autowired
@@ -55,9 +54,8 @@ public class AgentServiceImpl implements AgentService {
 
         Optional<Agent> findAgentdBynNumeriSiret = agentRepository.findAgentByNumSire(agentParam.getSiretNumber());
         Optional<Agent> agentEmail = agentRepository.findByEmail(agentParam.getEmail());
-
-
         if (findAgentdBynNumeriSiret.isEmpty()) {
+
             newAgent = new Agent();
             newAgent.setName(agentParam.getName());
             if (agentParam.getNumber().matches(regexPhoneNumber)) {

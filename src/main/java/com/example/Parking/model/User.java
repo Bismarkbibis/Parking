@@ -32,8 +32,7 @@ public class User implements Serializable {
     private String firstName;
     @Column(nullable = false,unique = true)
     private String number;
-    @Column(nullable = false,unique = true)
-    private String email;
+
 
     //association
     @OneToMany(mappedBy = "user")
@@ -50,12 +49,12 @@ public class User implements Serializable {
         accounts = new ArrayList<>();
     }
 
-    public User(String name, String firstName, String number, String email, Adress adress) {
+    public User(String name, String firstName, String number, Adress adress) {
         super();
         this.name = name;
         this.firstName = firstName;
         this.number = number;
-        this.email = email;
+
         this.adress = adress;
     }
 

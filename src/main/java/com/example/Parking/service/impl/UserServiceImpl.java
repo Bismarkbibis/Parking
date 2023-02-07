@@ -4,8 +4,11 @@ import com.example.Parking.model.User;
 import com.example.Parking.service.UserService;
 
 public class UserServiceImpl implements UserService {
+
+
     @Override
     public User creatCustomer(User user) {
+
         return null;
     }
 
