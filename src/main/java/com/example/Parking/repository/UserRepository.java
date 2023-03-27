@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<Integer, User> {
+public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u from User u WHERE u.id=:idUser")
     Optional<User> findAllById(int idUser);
 }

@@ -2,9 +2,10 @@ package com.example.Parking.service.impl;
 
 import com.example.Parking.model.User;
 import com.example.Parking.service.UserService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class UserServiceImpl implements UserService {
-
 
     @Override
     public User creatCustomer(User user) {

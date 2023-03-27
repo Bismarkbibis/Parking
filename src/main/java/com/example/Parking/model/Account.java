@@ -3,9 +3,12 @@ package com.example.Parking.model;
 import com.example.Parking.emu.AcountStatu;
 import com.example.Parking.emu.Role;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.Date;
 
 
 @Data
@@ -26,6 +29,15 @@ public class Account implements Serializable {
     private String password;
     @Column(unique = true,nullable = false)
     private String email;
+    @Column(unique = true,nullable = false)
+    private String username;
+    @Column(name = "dateCreation",nullable = false)
+    @DateTimeFormat(pattern = "MM-dd-yy")
+    private LocalDate dateCreation;
+    @Column(name = "dateConnexion")
+    @DateTimeFormat(pattern = "MM-dd-yy")
+    private LocalDate lastDateConnexion;
+
 
     //emu
     @Enumerated(EnumType.STRING)
@@ -47,9 +59,12 @@ public class Account implements Serializable {
 
     }
 
-    public Account(String password, String email, Role role, AcountStatu statu, User user, Agent agent) {
+    public Account(String password, String email, String username, LocalDate dateCreation, LocalDate lastDateConnexion, Role role, AcountStatu statu, User user, Agent agent) {
         this.password = password;
         this.email = email;
+        this.username = username;
+        this.dateCreation=dateCreation;
+        this.lastDateConnexion = lastDateConnexion;
         this.role = role;
         this.statu = statu;
         this.user = user;

@@ -2,7 +2,6 @@ package com.example.Parking.model;
 
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -44,7 +43,7 @@ public class User implements Serializable {
     private Adress adress;
 
 
-    public User() {
+    public User(Account newAccount) {
         reservations = new ArrayList<>();
         accounts = new ArrayList<>();
     }

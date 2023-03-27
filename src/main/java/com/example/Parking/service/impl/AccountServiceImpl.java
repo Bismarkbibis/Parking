@@ -1,58 +1,109 @@
 package com.example.Parking.service.impl;
 
+import antlr.Token;
 import com.example.Parking.dto.AccountDto;
+import com.example.Parking.dto.LogingDTO;
+import com.example.Parking.emu.AcountStatu;
+import com.example.Parking.emu.Role;
 import com.example.Parking.exception.CustomeException;
 import com.example.Parking.model.Account;
-import com.example.Parking.model.User;
-import com.example.Parking.outils.UserConfig;
+import com.example.Parking.outils.Config;
 import com.example.Parking.repository.AccountRepository;
-import com.example.Parking.repository.UserRepository;
 import com.example.Parking.service.AccountService;
-
-import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+@Service
 public class AccountServiceImpl implements AccountService {
 
-    //
     private final AccountRepository accountRepository;
-    private final UserRepository userRepository;
 
-    private UserConfig userConfig;
-    private HashMap<String,String> error;
 
-    public AccountServiceImpl(AccountRepository accountRepository, UserRepository userRepository, UserConfig userConfig) {
+    public AccountServiceImpl(AccountRepository accountRepository) {
         this.accountRepository = accountRepository;
-        this.userRepository = userRepository;
-        this.userConfig = userConfig;
     }
 
-    //TODO : A revoir email et customer
     @Override
-    public User creatUser(AccountDto accountDto,int idUser) {
+    public Account createAccount(AccountDto accountDto) {
+        // Vérifier l'entrée null
+        Objects.requireNonNull(accountDto, "AccountDto ne peut pas être null.");
 
-        //seach user is present pass else exception throw
-        Account findUserByEmail=accountRepository.findByEmail(accountDto.getEmail()).
-                orElseThrow(()->new CustomeException("not find","value find = "+accountDto.getEmail()));
-        //seach user is present pass else exception throw
-        User findUserById = userRepository.findAllById(idUser).
-                orElseThrow(()->new CustomeException("not find","id :  "+idUser));
+        // Vérifier si un compte existe déjà avec l'email et le nom d'utilisateur
+        checkExistingAccountByEmail(accountDto.getEmail());
+        checkExistingAccountByUsername(accountDto.getUsername());
 
-            //creat account
-            Account newAccount = new Account();
-            if (userConfig.verifyEmailFormat(accountDto.getEmail())){
-                newAccount.setEmail(accountDto.getEmail());
-            }else{
+        // Créer un nouveau compte utilisateur
+        Account newAccount = AccountDto.mapAcountToEntity(accountDto);
+        String email = accountDto.getEmail();
+        String password = accountDto.getPassword();
+        String confirmPassword = accountDto.getPassword02();
+        String username = accountDto.getUsername();
 
-            }
-            // verifie password
-            if (userConfig.matches(accountDto.getPassword(), accountDto.getPassword02())) {
-                newAccount.setPassword(accountDto.getPassword());
-                userConfig.encode(newAccount.getPassword());
-            }
-        return null;
+        // Vérifier le format de l'email
+        if (Config.verifyEmailFormat(email)) {
+            newAccount.setEmail(email);
+        } else {
+            throw new CustomeException("Format d'email invalide : " + email);
         }
 
+        // Vérifier que les mots de passe correspondent
+        if (password.equals(confirmPassword)) {
+            newAccount.setPassword(Config.encode(password));
+        } else {
+            throw new CustomeException("Les mots de passe ne correspondent pas.");
+        }
 
+        // Activer le compte
+        newAccount.setStatu(AcountStatu.ACTIVE);
+
+        // Définir le rôle de l'utilisateur
+        newAccount.setRole(Role.AMDIN);
+
+        // Définir le nom d'utilisateur
+        newAccount.setUsername(username);
+
+        // Définir la date de création du compte
+        newAccount.setDateCreation(LocalDate.now());
+
+        // Enregistrer le nouveau compte utilisateur
+        return accountRepository.save(newAccount);
     }
+
+
+    @Override
+    public List<Account> ACCOUNT_LIST(){
+       List<Account> list =accountRepository.findAll();
+        if (list.isEmpty()) {
+            throw new CustomeException("Account empty");
+        }
+        return list;
+    }
+
+
+
+
+    private void checkExistingAccountByEmail(@NotNull String email) {
+        Optional<Account> existingAccount = accountRepository.findByEmail(email);
+        if (existingAccount.isPresent()) {
+            throw new CustomeException("Un compte existe déjà avec cet email : " + email);
+        }
+    }
+    private void checkExistingAccountByUsername(@NotNull String username) {
+        Optional<Account> existingAccount = accountRepository.findByUsername(username);
+        if (existingAccount.isPresent()) {
+            throw new CustomeException("Un compte existe déjà avec ce nom d'utilisateur : " + username);
+        }
+    }
+
+    //TODO creat Token
+    public Token creatToken(){
+
+      return null;
+    }
+}
+
 

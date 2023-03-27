@@ -2,9 +2,15 @@ package com.example.Parking.service;
 
 import com.example.Parking.dto.AccountDto;
 import com.example.Parking.model.Account;
-import com.example.Parking.model.User;
+
+import java.util.List;
 
 public interface AccountService {
 
-    User creatUser (AccountDto accountDto,int idUser);
+
+    //TODO : A revoir email et customer
+    Account createAccount(AccountDto accountDto);
+    List<Account> ACCOUNT_LIST();
+
+
 }
