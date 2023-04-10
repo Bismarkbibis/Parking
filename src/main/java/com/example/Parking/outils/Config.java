@@ -24,6 +24,12 @@ public class Config  {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         return encoder.encode(password);
     }
+    // Vérifier que le numéro de téléphone est valide
+    public final static boolean isValidPhoneNumber(String phoneNumber) {
+        // Utiliser une expression régulière pour valider le format du numéro de téléphone
+        String regex = "^[0-9]{10}$";
+        return phoneNumber.matches(regex);
+    }
 
 
 }

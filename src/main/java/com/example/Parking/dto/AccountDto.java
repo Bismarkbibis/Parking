@@ -30,6 +30,7 @@ public class AccountDto implements Serializable {
     private final String email;
 
     private final String username;
+    private final String accountType;
     // mapAccountToDTO
     public static AccountDto mapAcountToDTO(Account account){
         AccountDto accountDto = MappClass.mapper.map(account,AccountDto.class);

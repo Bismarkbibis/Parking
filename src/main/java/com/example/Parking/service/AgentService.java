@@ -7,6 +7,6 @@ import com.example.Parking.model.Agent;
 
 public interface AgentService {
 
-    Agent creatAgent(AgentDto agentDto, AccountDto accountDto, AdressDto adressDto);
+    Agent createAgent(AgentDto agentDto, AdressDto adressDTO, AccountDto accountDto);
 
 }

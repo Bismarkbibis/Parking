@@ -1,6 +1,7 @@
 package com.example.Parking.model;
 
 import com.example.Parking.emu.AcountStatu;
+import com.example.Parking.emu.AcountType;
 import com.example.Parking.emu.Role;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -8,7 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collection;
 
 
 @Data
@@ -45,7 +47,11 @@ public class Account implements Serializable {
     private Role role;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AcountStatu statu;
+    private AcountStatu status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AcountType acountType;
+
 
     //assocaition
     @ManyToOne
@@ -55,18 +61,22 @@ public class Account implements Serializable {
     @JoinColumn(name = "agent_id")
     private Agent agent;
 
-    public Account() {
+    @OneToMany(mappedBy = "account")
+    private Collection<Token> tokens;
 
+    public Account() {
+    tokens = new ArrayList<>();
     }
 
-    public Account(String password, String email, String username, LocalDate dateCreation, LocalDate lastDateConnexion, Role role, AcountStatu statu, User user, Agent agent) {
+    public Account(String password, String email, String username, LocalDate dateCreation, LocalDate lastDateConnexion, Role role, AcountStatu status, AcountType acountType, User user, Agent agent) {
         this.password = password;
         this.email = email;
         this.username = username;
-        this.dateCreation=dateCreation;
+        this.dateCreation = dateCreation;
         this.lastDateConnexion = lastDateConnexion;
         this.role = role;
-        this.statu = statu;
+        this.status = status;
+        this.acountType = acountType;
         this.user = user;
         this.agent = agent;
     }

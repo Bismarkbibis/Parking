@@ -1,10 +1,7 @@
 package com.example.Parking.service.impl;
 
-import antlr.Token;
 import com.example.Parking.dto.AccountDto;
-import com.example.Parking.dto.LogingDTO;
 import com.example.Parking.emu.AcountStatu;
-import com.example.Parking.emu.Role;
 import com.example.Parking.exception.CustomeException;
 import com.example.Parking.model.Account;
 import com.example.Parking.outils.Config;
@@ -20,6 +17,7 @@ import java.util.Optional;
 @Service
 public class AccountServiceImpl implements AccountService {
 
+
     private final AccountRepository accountRepository;
 
 
@@ -30,12 +28,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account createAccount(AccountDto accountDto) {
         // Vérifier l'entrée null
-        Objects.requireNonNull(accountDto, "AccountDto ne peut pas être null.");
+        Objects.requireNonNull(accountDto, "Account ne peut pas être null.");
 
         // Vérifier si un compte existe déjà avec l'email et le nom d'utilisateur
         checkExistingAccountByEmail(accountDto.getEmail());
         checkExistingAccountByUsername(accountDto.getUsername());
-
         // Créer un nouveau compte utilisateur
         Account newAccount = AccountDto.mapAcountToEntity(accountDto);
         String email = accountDto.getEmail();
@@ -56,23 +53,14 @@ public class AccountServiceImpl implements AccountService {
         } else {
             throw new CustomeException("Les mots de passe ne correspondent pas.");
         }
-
         // Activer le compte
-        newAccount.setStatu(AcountStatu.ACTIVE);
-
-        // Définir le rôle de l'utilisateur
-        newAccount.setRole(Role.AMDIN);
-
-        // Définir le nom d'utilisateur
+        newAccount.setStatus(AcountStatu.ACTIVE);
+        // Définir le nom d'utilisateur et la date de création du compte
         newAccount.setUsername(username);
-
-        // Définir la date de création du compte
         newAccount.setDateCreation(LocalDate.now());
-
         // Enregistrer le nouveau compte utilisateur
         return accountRepository.save(newAccount);
     }
-
 
     @Override
     public List<Account> ACCOUNT_LIST(){
@@ -83,15 +71,13 @@ public class AccountServiceImpl implements AccountService {
         return list;
     }
 
-
-
-
     private void checkExistingAccountByEmail(@NotNull String email) {
         Optional<Account> existingAccount = accountRepository.findByEmail(email);
         if (existingAccount.isPresent()) {
             throw new CustomeException("Un compte existe déjà avec cet email : " + email);
         }
     }
+
     private void checkExistingAccountByUsername(@NotNull String username) {
         Optional<Account> existingAccount = accountRepository.findByUsername(username);
         if (existingAccount.isPresent()) {
@@ -99,11 +85,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    //TODO creat Token
-    public Token creatToken(){
-
-      return null;
-    }
 }
 
 

@@ -1,19 +1,43 @@
 package com.example.Parking.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import lombok.Data;
+
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity
 public class Token implements Serializable {
-    @Id
-    private Long id;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-    public void setId(Long id) {
-        this.id = id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer Id;
+
+    @Column(nullable = true,unique = true)
+    private String valeurToken;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateExpire;
+
+    @ManyToOne
+    private Account account;
+
+    public Token(String valeurToken, Date dateExpire) {
+        this.valeurToken = valeurToken;
+        this.dateExpire = dateExpire;
     }
 
-    public Long getId() {
-        return id;
+    public Token(String valeurToken, Date dateExpire, Account account) {
+        this.valeurToken = valeurToken;
+        this.dateExpire = dateExpire;
+        this.account = account;
+    }
+
+    public Token() {
+
     }
 }

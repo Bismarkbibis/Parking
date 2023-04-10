@@ -31,7 +31,6 @@ public class AdressServiceImpl implements AdressService {
                 adressDto.getNameVoie(),
                 adressDto.getNumVoie(),
                 adressDto.getPostalCode());
-        System.out.println("hello word");
         // Si l'adresse n'existe pas déjà, créer une nouvelle adresse
         if (existingAdress.isEmpty()) {
             Adress newAdress = AdressDto.mapAdressToEntity(adressDto);

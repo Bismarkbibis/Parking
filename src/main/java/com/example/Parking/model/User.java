@@ -11,6 +11,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 @Data
 @Getter
@@ -31,6 +32,9 @@ public class User implements Serializable {
     private String firstName;
     @Column(nullable = false,unique = true)
     private String number;
+    @Column(nullable = false)
+    @Temporal(TemporalType.DATE)
+    private Date dateIncription;
 
 
     //association
@@ -43,6 +47,7 @@ public class User implements Serializable {
     private Adress adress;
 
 
+
     public User(Account newAccount) {
         reservations = new ArrayList<>();
         accounts = new ArrayList<>();
@@ -53,8 +58,9 @@ public class User implements Serializable {
         this.name = name;
         this.firstName = firstName;
         this.number = number;
-
         this.adress = adress;
     }
 
+    public User() {
+    }
 }
